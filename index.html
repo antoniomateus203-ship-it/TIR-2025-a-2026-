@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dashboard Executivo | Análise Comparativa de Demanda</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+<style>
+/* ============================================================
+   TOKENS — Paleta "Forest & Mint"
+   ============================================================ */
+:root{
+  --vp:#1b4332;   /* verde-petróleo  */
+  --vf:#2d6a4f;   /* verde-floresta  */
+  --ve:#40916c;   /* verde-esmeralda */
+  --vm:#52b788;
+  --vc:#74c69d;
+  --me:#95d5b2;
+  --mc:#b7e4c7;
+  --ho:#d8f3dc;   /* hortelã clara   */
+
+  --bg:#f1f7f3;
+  --card:#ffffff;
+  --txt:#16241e;
+  --txt2:#4d6058;
+  --txt3:#7b8c84;
+  --line:rgba(45,106,79,.12);
+
+  --up:#b3261e;   --upbg:#fdeceb;
+  --down:#2d6a4f; --downbg:#d8f3dc;
+  --flat:#5c6b64; --flatbg:#eef2f0;
+
+  --shadow:0 4px 18px rgba(27,67,50,.07);
+  --shadow-lg:0 12px 34px rgba(27,67,50,.13);
+  --r:18px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:
+     radial-gradient(1200px 600px at 100% -10%, #e3f3e8 0%, transparent 55%),
+     radial-gradient(900px 500px at -10% 20%, #e8f6ee 0%, transparent 50%),
+     var(--bg);
+  color:var(--txt);
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+.wrap{max-width:1400px;margin:0 auto;padding:0 24px;}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero{
+  position:relative;
+  background:linear-gradient(135deg,#14352a 0%,#1b4332 32%,#2d6a4f 70%,#40916c 100%);
+  color:#fff;
+  padding:42px 0 96px;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(216,243,220,.20), transparent 42%),
+    radial-gradient(circle at 4% 96%, rgba(149,213,178,.16), transparent 38%);
+}
+.hero::after{
+  content:'';position:absolute;right:-90px;bottom:-140px;
+  width:420px;height:420px;border-radius:50%;
+  border:1px solid rgba(216,243,220,.18);
+  box-shadow:0 0 0 60px rgba(216,243,220,.05);
+  pointer-events:none;
+}
+.hero-inner{position:relative;z-index:2;}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(216,243,220,.14);
+  border:1px solid rgba(216,243,220,.28);
+  color:#d8f3dc;
+  font-size:11.5px;font-weight:600;letter-spacing:.10em;text-transform:uppercase;
+  padding:7px 14px;border-radius:999px;margin-bottom:18px;
+  backdrop-filter:blur(6px);
+}
+.hero-badge svg{width:14px;height:14px;}
+.hero h1{
+  font-size:clamp(26px,3.6vw,42px);
+  font-weight:800;letter-spacing:-.02em;line-height:1.15;
+  margin-bottom:10px;
+}
+.hero-sub{
+  font-size:clamp(14px,1.3vw,16px);
+  color:rgba(216,243,220,.86);
+  max-width:720px;font-weight:400;
+}
+.periods{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:24px;}
+.period-chip{
+  display:inline-flex;align-items:center;gap:9px;
+  background:rgba(255,255,255,.10);
+  border:1px solid rgba(216,243,220,.24);
+  padding:9px 16px;border-radius:999px;
+  font-size:13.5px;font-weight:600;color:#f0fbf3;
+  backdrop-filter:blur(6px);
+}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+.dot1{background:#95d5b2;}
+.dot2{background:#d8f3dc;box-shadow:0 0 0 3px rgba(216,243,220,.25);}
+.arrow{width:16px;height:16px;color:rgba(216,243,220,.6);}
+
+/* Logo Ipasgo */
+.ipasgo-logo {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 70px;
+  height: auto;
+  z-index: 10;
+  border-radius: 12px;
+}
+@media (max-width: 720px) {
+  .ipasgo-logo {
+    width: 50px;
+    top: 16px;
+    right: 16px;
+  }
+}
+
+/* ============================================================
+   KPIs
+   ============================================================ */
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  gap:18px;
+  margin-top:-60px;
+  position:relative;z-index:5;
+}
+.kpi{
+  background:var(--card);
+  border-radius:var(--r);
+  padding:20px 22px 18px;
+  box-shadow:var(--shadow-lg);
+  border:1px solid var(--line);
+  position:relative;overflow:hidden;
+  transition:transform .22s ease, box-shadow .22s ease;
+}
+.kpi:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(27,67,50,.16);}
+.kpi::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:linear-gradient(180deg,var(--ve),var(--mc));
+}
+.kpi.accent::before{background:linear-gradient(180deg,#c2410c,#f0b27a);}
+.kpi-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;}
+.kpi-label{
+  font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--txt3);
+}
+.kpi-ico{
+  width:34px;height:34px;border-radius:11px;
+  background:var(--ho);color:var(--vf);
+  display:grid;place-items:center;flex:none;
+}
+.kpi-ico svg{width:17px;height:17px;}
+.kpi.accent .kpi-ico{background:#fdece4;color:#c2410c;}
+.kpi-value{
+  font-size:clamp(26px,2.6vw,33px);font-weight:800;
+  letter-spacing:-.025em;line-height:1.05;color:var(--vp);
+}
+.kpi.accent .kpi-value{font-size:clamp(18px,1.9vw,22px);line-height:1.2;}
+.kpi-foot{
+  margin-top:9px;font-size:12.5px;color:var(--txt2);
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+}
+.kpi-foot .pos{color:var(--up);font-weight:700;}
+.kpi-foot .good{color:var(--vf);font-weight:700;}
+
+/* faixa de nota */
+.note-strip{
+  margin-top:18px;
+  display:flex;align-items:flex-start;gap:11px;
+  background:linear-gradient(90deg,rgba(216,243,220,.75),rgba(216,243,220,.28));
+  border:1px solid rgba(64,145,108,.20);
+  border-left:4px solid var(--ve);
+  border-radius:14px;
+  padding:14px 18px;
+  font-size:13.2px;color:var(--vf);
+}
+.note-strip svg{width:17px;height:17px;flex:none;margin-top:2px;color:var(--ve);}
+.note-strip b{color:var(--vp);font-weight:700;}
+
+/* ============================================================
+   CARDS / SECTIONS
+   ============================================================ */
+section{margin-top:26px;}
+.card{
+  background:var(--card);
+  border-radius:var(--r);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow);
+  padding:22px 24px 24px;
+}
+.card-head{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:14px;flex-wrap:wrap;margin-bottom:18px;
+}
+.card-head h2{
+  font-size:15.5px;font-weight:700;color:var(--vp);
+  display:flex;align-items:center;gap:9px;letter-spacing:-.01em;
+}
+.card-head h2 svg{width:17px;height:17px;color:var(--ve);}
+.card-sub{
+  font-size:11.5px;font-weight:600;color:var(--txt3);
+  background:var(--ho);padding:5px 11px;border-radius:999px;
+  letter-spacing:.02em;
+}
+
+.grid-charts{
+  display:grid;
+  grid-template-columns:1.65fr 1fr;
+  gap:20px;
+}
+.chart-box{position:relative;height:450px;width:100%;}
+.chart-box.donut{height:450px;}
+
+/* ============================================================
+   TABELA
+   ============================================================ */
+.table-scroll{overflow-x:auto;border-radius:14px;border:1px solid var(--line);}
+table{width:100%;border-collapse:collapse;font-size:13.3px;min-width:940px;}
+thead th{
+  position:sticky;top:0;z-index:2;
+  background:linear-gradient(180deg,#1b4332,#245140);
+  color:#e9f7ee;font-weight:600;font-size:11.5px;
+  letter-spacing:.07em;text-transform:uppercase;
+  text-align:right;padding:14px 16px;white-space:nowrap;
+}
+thead th:first-child{text-align:left;}
+tbody td{
+  padding:12px 16px;text-align:right;border-bottom:1px solid var(--line);
+  color:var(--txt2);white-space:nowrap;
+}
+tbody td:first-child{text-align:left;color:var(--txt);font-weight:500;}
+tbody tr:hover{background:#f6fbf8;}
+tbody tr.lvl1 td:first-child{padding-left:38px;font-weight:400;color:var(--txt2);position:relative;}
+tbody tr.lvl1 td:first-child::before{
+  content:'';position:absolute;left:22px;top:50%;
+  width:7px;height:1px;background:var(--mc);
+}
+tbody tr.lvl0 td:first-child{font-weight:700;color:var(--vp);}
+tbody tr.lvl0{background:#fbfefc;}
+tbody tr:last-child td{border-bottom:none;}
+tfoot td{
+  padding:14px 16px;text-align:right;font-weight:800;color:var(--vp);
+  background:linear-gradient(90deg,#d8f3dc,#eefaf1);
+  border-top:2px solid var(--ve);font-size:13.5px;
+}
+tfoot td:first-child{text-align:left;letter-spacing:.02em;}
+
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 10px;border-radius:999px;
+  font-size:11.5px;font-weight:700;letter-spacing:.01em;
+}
+.badge svg{width:12px;height:12px;}
+.badge.up{background:var(--upbg);color:var(--up);}
+.badge.down{background:var(--downbg);color:var(--down);}
+.badge.flat{background:var(--flatbg);color:var(--flat);}
+
+.tir{font-variant-numeric:tabular-nums;font-weight:600;color:var(--txt2);}
+.tir.good{color:var(--vf);}
+.tir.bad{color:var(--up);}
+.tir-sep{color:var(--mc);margin:0 6px;font-weight:400;}
+
+.method-note{
+  margin-top:14px;font-size:12.2px;color:var(--txt3);
+  display:flex;gap:9px;align-items:flex-start;line-height:1.6;
+}
+.method-note svg{width:15px;height:15px;flex:none;margin-top:2px;color:var(--vc);}
+
+/* ============================================================
+   INSIGHTS
+   ============================================================ */
+.insights-head{
+  display:flex;align-items:center;gap:12px;margin:0 4px 16px;
+}
+.insights-head .ic{
+  width:40px;height:40px;border-radius:13px;flex:none;
+  background:linear-gradient(135deg,var(--vp),var(--ve));
+  display:grid;place-items:center;color:#d8f3dc;
+  box-shadow:0 6px 16px rgba(27,67,50,.22);
+}
+.insights-head .ic svg{width:19px;height:19px;}
+.insights-head h2{font-size:19px;font-weight:800;color:var(--vp);letter-spacing:-.02em;}
+.insights-head p{font-size:13px;color:var(--txt3);}
+
+.insights{display:grid;gap:12px;}
+.insight{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:16px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+  transition:box-shadow .2s ease, border-color .2s ease;
+}
+.insight:hover{box-shadow:0 10px 28px rgba(27,67,50,.11);}
+.insight.open{border-color:rgba(64,145,108,.32);}
+.insight-head{
+  width:100%;background:none;border:none;cursor:pointer;
+  display:flex;align-items:center;gap:14px;
+  padding:16px 20px;text-align:left;font-family:inherit;
+}
+.insight-head:focus-visible{outline:2px solid var(--ve);outline-offset:-3px;border-radius:16px;}
+.ins-ico{
+  width:36px;height:36px;border-radius:11px;flex:none;
+  display:grid;place-items:center;
+  background:var(--ho);color:var(--vf);
+}
+.ins-ico svg{width:17px;height:17px;}
+.ins-ico.up{background:var(--upbg);color:var(--up);}
+.ins-ico.down{background:var(--downbg);color:var(--down);}
+.ins-title{font-size:14.5px;font-weight:700;color:var(--vp);flex:1;letter-spacing:-.01em;}
+.ins-tag{
+  font-size:12px;font-weight:700;padding:4px 11px;border-radius:999px;white-space:nowrap;
+}
+.ins-tag.up{background:var(--upbg);color:var(--up);}
+.ins-tag.down{background:var(--downbg);color:var(--down);}
+.ins-tag.flat{background:var(--flatbg);color:var(--flat);}
+.chev{
+  width:26px;height:26px;border-radius:50%;flex:none;
+  display:grid;place-items:center;background:var(--ho);color:var(--vf);
+  transition:transform .28s ease, background .2s ease;
+}
+.chev svg{width:15px;height:15px;}
+.insight.open .chev{transform:rotate(180deg);background:var(--ve);color:#fff;}
+
+.insight-body{
+  max-height:0;overflow:hidden;
+  transition:max-height .34s cubic-bezier(.4,0,.2,1);
+}
+.insight-body-inner{
+  padding:0 20px 20px 70px;
+  font-size:13.6px;color:var(--txt2);line-height:1.7;
+}
+.insight-body-inner p + p{margin-top:10px;}
+.insight-body-inner strong{color:var(--vp);font-weight:700;}
+.kpis-inline{
+  display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;
+}
+.pill{
+  font-size:11.5px;font-weight:600;padding:4px 11px;border-radius:999px;
+  background:#f3f9f5;color:var(--vf);border:1px solid var(--line);
+}
+.pill.warn{background:var(--upbg);color:var(--up);border-color:rgba(179,38,30,.14);}
+.pill.ok{background:var(--downbg);color:var(--down);border-color:rgba(45,106,79,.16);}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer{
+  margin-top:38px;padding:26px 0 40px;
+  border-top:1px solid var(--line);
+  text-align:center;font-size:12.2px;color:var(--txt3);
+}
+footer b{color:var(--vf);font-weight:700;}
+
+/* ============================================================
+   RESPONSIVO
+   ============================================================ */
+@media (max-width:1080px){
+  .grid-charts{grid-template-columns:1fr;}
+  .chart-box,.chart-box.donut{height:420px;}
+}
+@media (max-width:720px){
+  .wrap{padding:0 16px;}
+  .hero{padding:32px 0 84px;}
+  .kpis{grid-template-columns:1fr 1fr;gap:12px;margin-top:-56px;}
+  .kpi{padding:16px 16px 14px;}
+  .kpi-value{font-size:24px;}
+  .chart-box,.chart-box.donut{height:380px;}
+  .insight-body-inner{padding-left:20px;}
+  .card{padding:18px 16px 20px;}
+  .ins-title{font-size:13.4px;}
+}
+@media (max-width:480px){
+  .kpis{grid-template-columns:1fr;}
+  .ins-tag{display:none;}
+}
+</style>
+</head>
+
+<body>
+
+<!-- ================= HEADER ================= -->
+<header class="hero">
+  <img src="https://play-lh.googleusercontent.com/nNX3uE1J5d2IA3aywlINCxcfc-y2uKxo5QcH4GFK1R4AJZj_4RhlG6OYL6_78pAY1lsAWZrblOuiENNj8WDgGw=w240-h480-rw" 
+       srcset="https://play-lh.googleusercontent.com/nNX3uE1J5d2IA3aywlINCxcfc-y2uKxo5QcH4GFK1R4AJZj_4RhlG6OYL6_78pAY1lsAWZrblOuiENNj8WDgGw=w480-h960-rw 2x" 
+       alt="Ipasgo" 
+       class="ipasgo-logo">
+  <div class="wrap hero-inner">
+    <div class="hero-badge"><i data-lucide="bar-chart-3"></i> Relatório Executivo de Demanda</div>
+    <h1>Análise Comparativa de Reclamações</h1>
+    <p class="hero-sub">
+      Evolução da demanda por tema e subtema, com leitura de volume, variação absoluta,
+      variação percentual e taxa de resolutividade (TIR) entre os períodos de referência.
+    </p>
+    <div class="periods">
+      <span class="period-chip"><span class="dot dot1"></span> Jan – Set 2025</span>
+      <i data-lucide="arrow-right" class="arrow"></i>
+      <span class="period-chip"><span class="dot dot2"></span> Jan – Ago 2026</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ================= KPIs ================= -->
+  <section class="kpis" id="kpis"></section>
+
+  <div class="note-strip">
+    <i data-lucide="info"></i>
+    <div>
+      <b>Períodos de duração diferente:</b> 9 meses em 2025 contra 8 meses em 2026.
+      Na <b>média mensal</b>, a demanda subiu de <b>71,7</b> para <b>106,4</b> registros
+      (<b>+48,4%</b>) — crescimento ainda mais intenso do que a variação bruta sugere.
+    </div>
+  </div>
+
+  <!-- ================= GRÁFICOS ================= -->
+  <section class="grid-charts">
+    <div class="card">
+      <div class="card-head">
+        <h2><i data-lucide="bar-chart-3"></i> Demanda por tema</h2>
+        <span class="card-sub">Comparativo lado a lado · com valores</span>
+      </div>
+      <div class="chart-box"><canvas id="barChart"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2><i data-lucide="pie-chart"></i> Distribuição da demanda atual</h2>
+        <span class="card-sub">Jan – Ago 2026</span>
+      </div>
+      <div class="chart-box donut"><canvas id="donutChart"></canvas></div>
+    </div>
+  </section>
+
+  <!-- ================= TABELA ================= -->
+  <section class="card">
+    <div class="card-head">
+      <h2><i data-lucide="table"></i> Tabela comparativa por tema e subtema</h2>
+      <span class="card-sub">25 linhas · ordenadas por hierarquia</span>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Categoria / Item</th>
+            <th>Jan–Set 2025</th>
+            <th>Jan–Ago 2026</th>
+            <th>Var. Absoluta</th>
+            <th>Var. %</th>
+            <th>Status</th>
+            <th>TIR 2025 → 2026</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+        <tfoot>
+          <tr>
+            <td>Total consolidado</td>
+            <td>645</td>
+            <td>851</td>
+            <td>+206</td>
+            <td>+31,9%</td>
+            <td><span class="badge up"><i data-lucide="arrow-up-right"></i> Aumento</span></td>
+            <td>79,3% <span class="tir-sep">→</span> <span class="tir good">83,9%</span></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="method-note">
+      <i data-lucide="file-text"></i>
+      <span>
+        <b>Nota metodológica:</b> o total consolidado corresponde à soma das categorias principais.
+        A coluna <b>Numerador</b> foi utilizada como métrica de volume de demandas por categoria;
+        a <b>TIR</b> corresponde à razão Numerador/Denominador de cada período.
+      </span>
+    </div>
+  </section>
+
+  <!-- ================= INSIGHTS ================= -->
+  <section>
+    <div class="insights-head">
+      <div class="ic"><i data-lucide="lightbulb"></i></div>
+      <div>
+        <h2>Análise e Insights Qualitativos</h2>
+        <p>Diagnóstico detalhado dos motivos de crescimento e queda por categoria — clique para expandir.</p>
+      </div>
+    </div>
+    <div class="insights" id="insights"></div>
+  </section>
+
+  <footer>
+    <b>Dashboard Executivo de Demanda</b> · Base: Médias de Reclamações por Período ·
+    Comparativo Jan–Set 2025 vs. Jan–Ago 2026
+  </footer>
+</main>
+
+<script>
+/* ============================================================
+   1. DADOS DE ORIGEM
+   ============================================================ */
+const P1 = { label:'Jan – Set 2025', short:'2025', total:645, denom:813, tir:0.793 };
+const P2 = { label:'Jan – Ago 2026', short:'2026', total:851, denom:1014, tir:0.839 };
+
+const ROWS = [
+  { name:'Cobertura',                              level:0, m1:583, m2:750, tir1:0.800, tir2:0.846 },
+  { name:'Carência',                               level:1, m1:18,  m2:15,  tir1:0.900, tir2:0.938 },
+  { name:'DLP/CPT',                                level:1, m1:5,   m2:8,   tir1:0.556, tir2:0.889 },
+  { name:'Prazo',                                  level:1, m1:141, m2:128, tir1:0.876, tir2:0.921 },
+  { name:'Rede',                                   level:1, m1:50,  m2:97,  tir1:0.769, tir2:0.843 },
+  { name:'Reembolso',                              level:1, m1:10,  m2:29,  tir1:0.417, tir2:0.674 },
+  { name:'Regras para Acesso aos Atendimentos',    level:1, m1:236, m2:289, tir1:0.849, tir2:0.855 },
+  { name:'Rol',                                    level:1, m1:123, m2:184, tir1:0.715, tir2:0.811 },
+  { name:'Subtema Não Informado',                  level:1, m1:0,   m2:0,   tir1:null,  tir2:null  },
+
+  { name:'Contratos e Regulamentos',               level:0, m1:50,  m2:60,  tir1:0.714, tir2:0.811 },
+  { name:'Adaptação ou Migração Contratual',       level:1, m1:8,   m2:2,   tir1:0.727, tir2:0.667 },
+  { name:'Aposentados, Demitidos e Exonerados',    level:1, m1:0,   m2:0,   tir1:null,  tir2:0.000 },
+  { name:'Contratação/Adesão e Vigência Contratual',level:1,m1:12,  m2:9,   tir1:0.800, tir2:0.900 },
+  { name:'Coparticipação e Franquia',              level:1, m1:10,  m2:22,  tir1:0.588, tir2:0.815 },
+  { name:'Documentos/Informações de Entrega Obrigatória',level:1,m1:2,m2:7, tir1:0.667, tir2:0.700 },
+  { name:'Inclusão de Dependentes',                level:1, m1:11,  m2:6,   tir1:0.846, tir2:0.857 },
+  { name:'Itens Obrigatórios e Cláusulas Contratuais',level:1,m1:2, m2:1,   tir1:0.667, tir2:1.000 },
+  { name:'Portabilidade',                          level:1, m1:3,   m2:3,   tir1:1.000, tir2:1.000 },
+  { name:'Suspensão e Rescisão',                   level:1, m1:2,   m2:10,  tir1:0.400, tir2:0.833 },
+
+  { name:'Mensalidades e Reajustes',               level:0, m1:12,  m2:41,  tir1:0.857, tir2:0.774 },
+  { name:'Mensalidade ou Outras Cobranças',        level:1, m1:11,  m2:40,  tir1:0.917, tir2:0.800 },
+  { name:'Reajuste Anual',                         level:1, m1:0,   m2:0,   tir1:0.000, tir2:0.000 },
+  { name:'Reajuste de Faixa Etária',               level:1, m1:1,   m2:1,   tir1:1.000, tir2:1.000 }
+];
+
+/* Rótulos curtos para o gráfico de barras */
+const SHORT_LABELS = {
+  'Regras para Acesso aos Atendimentos':'Regras de Acesso',
+  'Contratos e Regulamentos':'Contratos e Regul.',
+  'Mensalidades e Reajustes':'Mensalidades e Reaj.',
+  'Subtema Não Informado':'Não Informado'
+};
+
+/* ============================================================
+   2. HELPERS
+   ============================================================ */
+const nf = new Intl.NumberFormat('pt-BR');
+const fmtInt = v => nf.format(v);
+const fmtPct = (v, dec = 1) => v.toFixed(dec).replace('.', ',') + '%';
+const fmtSigned = v => (v > 0 ? '+' : v < 0 ? '-' : '') + nf.format(Math.abs(v));
+const fmtSignedPct = v => (v > 0 ? '+' : v < 0 ? '-' : '') + Math.abs(v).toFixed(1).replace('.', ',') + '%';
+const varPct = (a, b) => (a === 0 ? (b === 0 ? null : Infinity) : ((b - a) / a) * 100);
+
+/* ============================================================
+   3. KPIs
+   ============================================================ */
+const globalVar = ((P2.total - P1.total) / P1.total) * 100;
+const tirDelta  = (P2.tir - P1.tir) * 100;
+
+const KPIS = [
+  {
+    label:'Demanda total · ' + P1.short,
+    value: fmtInt(P1.total),
+    icon:'calendar-days',
+    foot:`<span>${fmtInt(P1.denom)} avaliações · TIR <b>${fmtPct(P1.tir*100)}</b></span>`
+  },
+  {
+    label:'Demanda total · ' + P2.short,
+    value: fmtInt(P2.total),
+    icon:'calendar-check',
+    foot:`<span>${fmtInt(P2.denom)} avaliações · TIR <b>${fmtPct(P2.tir*100)}</b></span>`
+  },
+  {
+    label:'Variação global',
+    value: fmtSignedPct(globalVar),
+    icon:'trending-up',
+    accent:true,
+    foot:`<span class="pos">${fmtSigned(P2.total - P1.total)} demandas</span>
+          <span>· TIR ${tirDelta >= 0 ? '+' : ''}${tirDelta.toFixed(1).replace('.',',')} p.p.</span>`
+  },
+  {
+    label:'Maior crescimento percentual',
+    value:'Mensalidades e Reajustes',
+    icon:'flame',
+    accent:true,
+    foot:`<span class="pos">+241,7%</span><span>· de 12 para 41 demandas</span>`
+  }
+];
+
+document.getElementById('kpis').innerHTML = KPIS.map(k => `
+  <article class="kpi ${k.accent ? 'accent' : ''}">
+    <div class="kpi-top">
+      <span class="kpi-label">${k.label}</span>
+      <span class="kpi-ico"><i data-lucide="${k.icon}"></i></span>
+    </div>
+    <div class="kpi-value">${k.value}</div>
+    <div class="kpi-foot">${k.foot}</div>
+  </article>
+`).join('');
+
+/* ============================================================
+   4. TABELA
+   ============================================================ */
+const tirHtml = (a, b) => {
+  const f = v => (v === null || v === undefined) ? '—' : fmtPct(v * 100);
+  const cls = (a !== null && b !== null) ? (b > a ? 'good' : b < a ? 'bad' : '') : '';
+  return `<span class="tir">${f(a)}</span><span class="tir-sep">→</span><span class="tir ${cls}">${f(b)}</span>`;
+};
+
+document.getElementById('tbody').innerHTML = ROWS.map(r => {
+  const abs = r.m2 - r.m1;
+  const p   = varPct(r.m1, r.m2);
+  const st  = r.m2 > r.m1 ? 'up' : (r.m2 < r.m1 ? 'down' : 'flat');
+  const stLabel = st === 'up' ? 'Aumento' : st === 'down' ? 'Queda' : 'Estável';
+  const stIcon  = st === 'up' ? 'arrow-up-right' : st === 'down' ? 'arrow-down-right' : 'minus';
+  const absStr  = abs === 0 ? '0' : fmtSigned(abs);
+  const pStr    = p === null ? '—' : fmtSignedPct(p);
+
+  return `
+    <tr class="lvl${r.level}">
+      <td>${r.name}</td>
+      <td>${fmtInt(r.m1)}</td>
+      <td>${fmtInt(r.m2)}</td>
+      <td>${absStr}</td>
+      <td>${pStr}</td>
+      <td><span class="badge ${st}"><i data-lucide="${stIcon}"></i> ${stLabel}</span></td>
+      <td>${tirHtml(r.tir1, r.tir2)}</td>
+    </tr>`;
+}).join('');
+
+/* ============================================================
+   5. GRÁFICO DE BARRAS AGRUPADAS — COM VALORES VISÍVEIS
+   ============================================================ */
+const themes = ROWS.filter(r => r.level === 0 && r.name !== 'Subtema Não Informado');
+
+/* Plugin: rótulos de valor sobre cada barra */
+const barValueLabels = {
+  id: 'barValueLabels',
+  afterDatasetsDraw(chart) {
+    const { ctx } = chart;
+    ctx.save();
+    chart.data.datasets.forEach((dataset, i) => {
+      const meta = chart.getDatasetMeta(i);
+      if (meta.hidden) return;
+      meta.data.forEach((bar, index) => {
+        const value = dataset.data[index];
+        if (value === 0 || value === null || value === undefined) return;
+
+        const txt = fmtInt(value);
+        ctx.font = '800 11px Inter, sans-serif';
+        const w = ctx.measureText(txt).width;
+        const padX = 5, padY = 3;
+        const boxW = w + padX * 2;
+        const boxH = 16;
+        const x = bar.x - boxW / 2;
+        const y = bar.y - boxH - 5;
+
+        // fundo arredondado
+        const radius = 5;
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + boxW - radius, y);
+        ctx.quadraticCurveTo(x + boxW, y, x + boxW, y + radius);
+        ctx.lineTo(x + boxW, y + boxH - radius);
+        ctx.quadraticCurveTo(x + boxW, y + boxH, x + boxW - radius, y + boxH);
+        ctx.lineTo(x + radius, y + boxH);
+        ctx.quadraticCurveTo(x, y + boxH, x, y + boxH - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+
+        // cores por série
+        ctx.fillStyle = i === 0 ? 'rgba(216,243,220,.95)' : '#1b4332';
+        ctx.fill();
+
+        // texto
+        ctx.fillStyle = i === 0 ? '#1b4332' : '#d8f3dc';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(txt, bar.x, y + boxH / 2 + 0.5);
+      });
+    });
+    ctx.restore();
+  }
+};
+
+const barCtx = document.getElementById('barChart').getContext('2d');
+const grad2026 = barCtx.createLinearGradient(0, 0, 0, 440);
+grad2026.addColorStop(0, '#2d6a4f');
+grad2026.addColorStop(1, '#40916c');
+
+new Chart(barCtx, {
+  type: 'bar',
+  data: {
+    labels: themes.map(t => SHORT_LABELS[t.name] || t.name),
+    datasets: [
+      {
+        label: 'Jan – Set 2025',
+        data: themes.map(t => t.m1),
+        backgroundColor: '#b7e4c7',
+        hoverBackgroundColor: '#95d5b2',
+        borderColor: '#95d5b2',
+        borderWidth: 1,
+        borderRadius: 6,
+        borderSkipped: false,
+        maxBarThickness: 30
+      },
+      {
+        label: 'Jan – Ago 2026',
+        data: themes.map(t => t.m2),
+        backgroundColor: grad2026,
+        hoverBackgroundColor: '#1b4332',
+        borderRadius: 6,
+        borderSkipped: false,
+        maxBarThickness: 30
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 900, easing: 'easeOutQuart' },
+    layout: { padding: { top: 34, right: 10, bottom: 4 } },
+    plugins: {
+      legend: {
+        position: 'top',
+        align: 'end',
+        labels: {
+          usePointStyle: true,
+          pointStyle: 'circle',
+          boxWidth: 8,
+          boxHeight: 8,
+          padding: 16,
+          color: '#2d3a34',
+          font: { family: 'Inter', size: 12, weight: '600' }
+        }
+      },
+      tooltip: {
+        backgroundColor: '#1b4332',
+        titleColor: '#d8f3dc',
+        bodyColor: '#eaf7ee',
+        padding: 12,
+        cornerRadius: 10,
+        boxPadding: 6,
+        titleFont: { family: 'Inter', size: 12.5, weight: '700' },
+        bodyFont: { family: 'Inter', size: 12.5 },
+        callbacks: {
+          label: ctx => `  ${ctx.dataset.label}: ${fmtInt(ctx.parsed.y)} demandas`
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: { color: 'rgba(27,67,50,.07)', drawBorder: false },
+        ticks: { color: '#7b8c84', font: { family: 'Inter', size: 11 }, padding: 8 },
+        title: {
+          display: true,
+          text: 'Nº de demandas',
+          color: '#9aa9a1',
+          font: { family: 'Inter', size: 11, weight: '600' }
+        }
+      },
+      x: {
+        grid: { display: false },
+        ticks: {
+          color: '#4d6058',
+          font: { family: 'Inter', size: 10.5, weight: '500' },
+          maxRotation: 42,
+          minRotation: 42,
+          autoSkip: false
+        }
+      }
+    }
+  },
+  plugins: [barValueLabels]
+});
+
+/* ============================================================
+   6. GRÁFICO DE ROSCA — COM PERCENTUAIS NOS ARCOS
+   ============================================================ */
+const sorted = [...themes].sort((a, b) => b.m2 - a.m2);
+const top6   = sorted.slice(0, 6);
+const rest   = sorted.slice(6);
+const outros = rest.reduce((s, r) => s + r.m2, 0);
+
+const donutLabels = top6.map(t => t.name);
+const donutData   = top6.map(t => t.m2);
+if (outros > 0) {
+  donutLabels.push('Outros temas');
+  donutData.push(outros);
+}
+
+const donutColors = ['#1b4332', '#2d6a4f', '#40916c', '#52b788', '#74c69d', '#95d5b2', '#c9e4d3'];
+const donutTotal  = donutData.reduce((a, b) => a + b, 0);
+
+/* Plugin 1: texto central (total) */
+const centerText = {
+  id: 'centerText',
+  afterDatasetsDraw(chart) {
+    const meta = chart.getDatasetMeta(0);
+    if (!meta.data.length) return;
+    const { x, y } = meta.data[0];
+    const ctx = chart.ctx;
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#1b4332';
+    ctx.font = '800 25px Inter, sans-serif';
+    ctx.fillText(fmtInt(donutTotal), x, y - 10);
+    ctx.fillStyle = '#7b8c84';
+    ctx.font = '600 10.5px Inter, sans-serif';
+    ctx.fillText('registros classificados', x, y + 14);
+    ctx.restore();
+  }
+};
+
+/* Plugin 2: percentual dentro de cada arco (quando houver espaço) */
+const donutArcLabels = {
+  id: 'donutArcLabels',
+  afterDatasetsDraw(chart) {
+    const { ctx } = chart;
+    const meta = chart.getDatasetMeta(0);
+    if (!meta.data.length) return;
+
+    ctx.save();
+    meta.data.forEach((arc, i) => {
+      const value = chart.data.datasets[0].data[i];
+      const pct = (value / donutTotal) * 100;
+
+      // só mostra se o arco tiver espessura angular suficiente
+      if (pct < 4.5) return;
+
+      const angle = (arc.startAngle + arc.endAngle) / 2;
+      const midR  = (arc.innerRadius + arc.outerRadius) / 2;
+      const x = arc.x + Math.cos(angle) * midR;
+      const y = arc.y + Math.sin(angle) * midR;
+
+      const txt = pct.toFixed(1).replace('.', ',') + '%';
+
+      ctx.font = '800 12px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.shadowColor = 'rgba(0,0,0,.35)';
+      ctx.shadowBlur = 3;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(txt, x, y);
+      ctx.shadowBlur = 0;
+    });
+    ctx.restore();
+  }
+};
+
+new Chart(document.getElementById('donutChart'), {
+  type: 'doughnut',
+  data: {
+    labels: donutLabels,
+    datasets: [{
+      data: donutData,
+      backgroundColor: donutColors,
+      borderColor: '#ffffff',
+      borderWidth: 3,
+      hoverOffset: 8,
+      hoverBorderWidth: 3
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '62%',
+    animation: { animateRotate: true, duration: 1000, easing: 'easeOutQuart' },
+    layout: { padding: 6 },
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          usePointStyle: true,
+          pointStyle: 'circle',
+          boxWidth: 8,
+          boxHeight: 8,
+          padding: 11,
+          color: '#4d6058',
+          font: { family: 'Inter', size: 11.5, weight: '500' },
+          generateLabels(chart) {
+            const d = chart.data;
+            return d.labels.map((label, i) => {
+              const val = d.datasets[0].data[i];
+              const pct = ((val / donutTotal) * 100).toFixed(1).replace('.', ',');
+              return {
+                text: `${label}  ·  ${fmtInt(val)} (${pct}%)`,
+                fillStyle: d.datasets[0].backgroundColor[i],
+                strokeStyle: d.datasets[0].backgroundColor[i],
+                lineWidth: 0,
+                pointStyle: 'circle',
+                index: i
+              };
+            });
+          }
+        }
+      },
+      tooltip: {
+        backgroundColor: '#1b4332',
+        titleColor: '#d8f3dc',
+        bodyColor: '#eaf7ee',
+        padding: 12,
+        cornerRadius: 10,
+        titleFont: { family: 'Inter', size: 12.5, weight: '700' },
+        bodyFont: { family: 'Inter', size: 12.5 },
+        callbacks: {
+          label: ctx => {
+            const v = ctx.parsed;
+            const pct = ((v / donutTotal) * 100).toFixed(1).replace('.', ',');
+            return `  ${fmtInt(v)} registros (${pct}%)`;
+          }
+        }
+      }
+    }
+  },
+  plugins: [centerText, donutArcLabels]
+});
+
+/* ============================================================
+   7. INSIGHTS QUALITATIVOS
+   ============================================================ */
+const INSIGHTS = [
+  {
+    name:'Cobertura',
+    dir:'up',
+    tag:'+28,6% · +167 demandas',
+    icon:'shield-alert',
+    pills:[
+      { t:'583 → 750 demandas', c:'' },
+      { t:'TIR 80,0% → 84,6%', c:'ok' },
+      { t:'88% do volume de 2026', c:'' }
+    ],
+    body:[
+      '<strong>Principal vetor de pressão sobre a demanda total.</strong> Cobertura responde por cerca de 88% de todo o volume classificado em 2026 e por 81% do crescimento absoluto do período — é o tema que praticamente define a curva geral do painel.',
+      'O avanço está concentrado em contestações de negativa de cobertura, restrições de procedimentos e prazos de autorização, categorias sensíveis a alterações de rol, incorporação de tecnologias e ampliação da judicialização.',
+      'A <strong>TIR subiu de 80,0% para 84,6%</strong>: o aumento de volume veio acompanhado de maior capacidade de resposta. O diagnóstico, portanto, é de <strong>escala</strong> — e não de queda na qualidade do tratamento.'
+    ]
+  },
+  {
+    name:'Rol',
+    dir:'up',
+    tag:'+49,6% · +61 demandas',
+    icon:'list-checks',
+    pills:[
+      { t:'123 → 184 demandas', c:'' },
+      { t:'TIR 71,5% → 81,1%', c:'ok' },
+      { t:'+9,6 p.p. de resolutividade', c:'ok' }
+    ],
+    body:[
+      'Crescimento expressivo e bem acima da média do painel, típico de ciclos com atualização do rol de procedimentos, incorporação de tecnologias e ampliação de coberturas obrigatórias.',
+      'Mesmo com o salto de volume, a resolutividade melhorou <strong>9,6 pontos percentuais</strong> — uma das maiores evoluções entre os temas. Isso indica que os fluxos de análise de cobertura absorveram a pressão sem perda de qualidade.',
+      'Atenção ao <strong>efeito de arraste</strong>: parte das demandas de Cobertura pode ter migrado para este tema após reclassificação, o que exige cautela na leitura isolada dos dois itens.'
+    ]
+  },
+  {
+    name:'Regras para Acesso aos Atendimentos',
+    dir:'up',
+    tag:'+22,5% · +53 demandas',
+    icon:'route',
+    pills:[
+      { t:'236 → 289 demandas', c:'' },
+      { t:'TIR 84,9% → 85,5%', c:'ok' },
+      { t:'3ª maior contribuição absoluta', c:'' }
+    ],
+    body:[
+      'Terceira maior contribuição absoluta para o crescimento total. O tema concentra dúvidas e barreiras em regras de acesso: carências, autorizações prévias, elegibilidade e fluxos de atendimento.',
+      'Com <strong>TIR estável e elevada (85,5%)</strong>, o padrão sugere que o crescimento é majoritariamente <strong>informacional</strong> — o beneficiário não compreende a regra — e não uma falha operacional de análise.',
+      'Recomenda-se reforçar comunicação proativa, autoatendimento e materiais explicativos sobre regras de acesso, atacando a causa raiz do volume.'
+    ]
+  },
+  {
+    name:'Rede',
+    dir:'up',
+    tag:'+94,0% · +47 demandas',
+    icon:'network',
+    pills:[
+      { t:'50 → 97 demandas', c:'' },
+      { t:'TIR 76,9% → 84,3%', c:'ok' },
+      { t:'+7,4 p.p. de resolutividade', c:'ok' }
+    ],
+    body:[
+      '<strong>Crescimento expressivo com melhora de resolutividade.</strong> A demanda quase dobrou e, ao mesmo tempo, a TIR subiu 7,4 pontos percentuais — combinação que indica melhoria no tratamento, mas ainda há pressão sobre a rede.',
+      'O padrão aponta insatisfação com a rede credenciada: descredenciamentos, cobertura insuficiente em determinadas regiões, dificuldade de agendamento e tempo de espera para consultas e exames.',
+      'É um <strong>ponto de atenção operacional</strong> e demanda ação sobre a rede contratada (credenciamento, capilaridade e SLA de atendimento), não apenas sobre o fluxo de respostas.'
+    ]
+  },
+  {
+    name:'Mensalidades e Reajustes',
+    dir:'up',
+    tag:'+241,7% · +29 demandas',
+    icon:'flame',
+    pills:[
+      { t:'12 → 41 demandas', c:'' },
+      { t:'Maior crescimento % entre os temas principais', c:'warn' },
+      { t:'TIR 85,7% → 77,4%', c:'warn' }
+    ],
+    body:[
+      '<strong>Maior crescimento percentual entre os temas principais.</strong> O movimento está quase inteiramente concentrado em “Mensalidade ou Outras Cobranças”, que saltou de 11 para 40 registros.',
+      'A TIR do tema <strong>caiu 8,3 pontos percentuais</strong> (85,7% → 77,4%). Mais demanda e menos resolução simultaneamente é um sinal de alerta: o processo de cobrança e o roteiro de respostas não estão dando conta do novo volume.',
+      'O surgimento de <strong>demandas de “Reajuste Anual” sem nenhuma resolução (TIR 0%)</strong> reforça a necessidade de revisão imediata do fluxo de contestação de reajustes e de faturamento.'
+    ]
+  },
+  {
+    name:'Reembolso',
+    dir:'up',
+    tag:'+190,0% · +19 demandas',
+    icon:'receipt',
+    pills:[
+      { t:'10 → 29 demandas', c:'' },
+      { t:'TIR 41,7% → 67,4%', c:'ok' },
+      { t:'TIR ainda a mais baixa entre os temas principais', c:'warn' }
+    ],
+    body:[
+      'O volume quase triplicou, embora o tema siga abaixo dos críticos em números absolutos.',
+      'Apesar da melhora de <strong>25,7 pontos percentuais</strong>, a TIR continua sendo a <strong>mais baixa entre os temas principais</strong> — mais de um terço das demandas não foi resolvido no período.',
+      'O padrão indica fricção no fluxo de solicitação, na documentação exigida e no prazo de pagamento. Vale mapear os motivos de não-resolução antes que o volume cresça sobre uma base já frágil.'
+    ]
+  },
+  {
+    name:'Prazo',
+    dir:'down',
+    tag:'−9,2% · −13 demandas',
+    icon:'timer',
+    pills:[
+      { t:'141 → 128 demandas', c:'ok' },
+      { t:'TIR 87,6% → 92,1%', c:'ok' },
+      { t:'Única retração entre os temas principais', c:'ok' }
+    ],
+    body:[
+      '<strong>Única retração entre os temas principais</strong>, acompanhada de ganho simultâneo de resolutividade (+4,5 p.p.).',
+      'Queda de demanda e alta de TIR ocorrendo juntas apontam para <strong>melhoria real</strong> nos fluxos de autorização e no cumprimento de prazos — e não para simples redução de registros ou subnotificação.',
+      'É o principal <strong>caso de sucesso</strong> a ser documentado e replicado nos demais temas operacionais.'
+    ]
+  },
+  {
+    name:'Contratos e Regulamentos',
+    dir:'up',
+    tag:'+20,0% · +10 demandas',
+    icon:'file-signature',
+    pills:[
+      { t:'50 → 60 demandas', c:'' },
+      { t:'TIR 71,4% → 81,1%', c:'ok' },
+      { t:'Alta recomposição interna', c:'warn' }
+    ],
+    body:[
+      'A estabilidade no agregado esconde uma <strong>forte recomposição interna</strong> — a leitura correta do tema é por subtema, nunca pelo total.',
+      '<strong>Destaques de alta:</strong> “Coparticipação e Franquia” +120% (10 → 22), “Suspensão e Rescisão” +400% (2 → 10, com TIR subindo de 40% para 83,3%) e o surgimento de 1 demanda de “Aposentados, Demitidos e Exonerados” com TIR 0%.',
+      '<strong>Destaques de queda:</strong> “Adaptação ou Migração Contratual” −75% (8 → 2) e “Inclusão de Dependentes” −45% (11 → 6).',
+      'O avanço da TIR de 71,4% para 81,1% mostra que o tratamento melhorou, mas o crescimento em coparticipação e rescisão contratual merece acompanhamento por estar ligado à percepção de custo pelo beneficiário.'
+    ]
+  },
+  {
+    name:'Carência, DLP/CPT e Subtema Não Informado',
+    dir:'flat',
+    tag:'Variações pontuais · baixo impacto',
+    icon:'activity',
+    pills:[
+      { t:'Carência: 18 → 15', c:'' },
+      { t:'DLP/CPT: 5 → 8 (TIR 88,9%)', c:'ok' },
+      { t:'Não Informado: 0 → 0', c:'ok' }
+    ],
+    body:[
+      '<strong>Carência</strong> caiu de 18 para 15 demandas e alcançou a <strong>melhor TIR do painel entre temas de volume (93,8%)</strong> — sinal de processo maduro.',
+      '<strong>DLP/CPT</strong> cresceu de 5 para 8 registros e atingiu <strong>88,9% de resolutividade</strong>. A base é pequena e sem relevância estatística, mas o indicador é positivo.',
+      '<strong>“Subtema Não Informado” segue zerado</strong> nos dois períodos, o que evidencia boa qualidade na classificação dos registros e confiabilidade da leitura por tema.'
+    ]
+  }
+];
+
+document.getElementById('insights').innerHTML = INSIGHTS.map((it, i) => `
+  <article class="insight ${i === 0 ? 'open' : ''}">
+    <button class="insight-head" type="button" aria-expanded="${i === 0}">
+      <span class="ins-ico ${it.dir}"><i data-lucide="${it.icon}"></i></span>
+      <span class="ins-title">${it.name}</span>
+      <span class="ins-tag ${it.dir}">${it.tag}</span>
+      <span class="chev"><i data-lucide="chevron-down"></i></span>
+    </button>
+    <div class="insight-body">
+      <div class="insight-body-inner">
+        <div class="kpis-inline">
+          ${it.pills.map(p => `<span class="pill ${p.c}">${p.t}</span>`).join('')}
+        </div>
+        ${it.body.map(p => `<p>${p}</p>`).join('')}
+      </div>
+    </div>
+  </article>
+`).join('');
+
+/* ============================================================
+   8. ACCORDION
+   ============================================================ */
+document.querySelectorAll('.insight').forEach(item => {
+  const head = item.querySelector('.insight-head');
+  const body = item.querySelector('.insight-body');
+
+  if (item.classList.contains('open')) {
+    body.style.maxHeight = body.scrollHeight + 'px';
+  }
+
+  head.addEventListener('click', () => {
+    const isOpen = item.classList.toggle('open');
+    head.setAttribute('aria-expanded', String(isOpen));
+    body.style.maxHeight = isOpen ? body.scrollHeight + 'px' : '0px';
+  });
+});
+
+let rt;
+window.addEventListener('resize', () => {
+  clearTimeout(rt);
+  rt = setTimeout(() => {
+    document.querySelectorAll('.insight.open .insight-body').forEach(b => {
+      b.style.maxHeight = b.scrollHeight + 'px';
+    });
+  }, 140);
+});
+
+/* ============================================================
+   9. ÍCONES
+   ============================================================ */
+lucide.createIcons();
+</script>
+</body>
+</html>
